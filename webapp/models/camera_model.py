@@ -30,11 +30,14 @@ class Camera(me.Document):
     latitude = me.FloatField()
     longitude = me.FloatField()
     
+    # เลขช่องในหน้า Dashboard (1-20) ถ้่าไม่มีค่าแสดงว่ายังไม่ได้ถูกนพไปแสดง
+    dashboard_slot = me.IntField(min_value=1, max_value=20, sparse=True, unique=True)
+    
     # บันทึกเวลาที่เปลี่ยนแปลงข้อมูลล่าสุด
     created_date = me.DateTimeField(required=True, default=datetime.datetime.now)
     updated_date = me.DateTimeField(required=True, default=datetime.datetime.now)
 
     meta = {
         "collection": "cameras",
-        "indexes": ["camera_id", "status"]
+        "indexes": ["camera_id", "status", "dashboard_slot"]
     }
