@@ -2,6 +2,8 @@
 
 {% block head %}
 <link rel="stylesheet" href="{{ 'css/parking-map.css' | static_url }}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 {% endblock head %}
 
 {% block body %}
@@ -14,160 +16,30 @@
       <div class="flex items-center px-2">
         <span class="material-symbols-outlined text-slate-400">search</span>
         <input class="w-full bg-transparent border-none focus:ring-0 text-white placeholder-slate-500 h-10 text-sm"
-          placeholder="Find parking lot..." type="text" />
+          placeholder="Find parking lot..." type="text" id="searchInput" />
       </div>
     </div>
   </div>
+
+  <!-- Map Container -->
+  <div id="map" class="flex-1 w-full h-full relative rounded-lg"></div>
 
   <!-- Map Controls -->
   <div class="absolute bottom-8 right-8 z-20 flex flex-col gap-3 pointer-events-none">
     <div
       class="flex flex-col rounded-lg shadow-xl overflow-hidden border border-slate-200 dark:border-zinc-700 pointer-events-auto">
-      <button class="size-10 flex items-center justify-center map-control-button border-b">
+      <button class="size-10 flex items-center justify-center map-control-button border-b" onclick="map.zoomIn()">
         <span class="material-symbols-outlined">add</span>
       </button>
-      <button class="size-10 flex items-center justify-center map-control-button">
+      <button class="size-10 flex items-center justify-center map-control-button" onclick="map.zoomOut()">
         <span class="material-symbols-outlined">remove</span>
       </button>
     </div>
     <button
-      class="size-10 flex items-center justify-center rounded-lg shadow-xl bg-primary text-white pointer-events-auto hover:bg-blue-600 transition-colors border border-transparent">
+      class="size-10 flex items-center justify-center rounded-lg shadow-xl bg-primary text-white pointer-events-auto hover:bg-blue-600 transition-colors border border-transparent"
+      onclick="zoomToUniversity()">
       <span class="material-symbols-outlined">my_location</span>
     </button>
-  </div>
-
-  <!-- Campus Map -->
-  <div
-    class="flex-1 w-full h-full relative campus-map-bg overflow-hidden group select-none cursor-grab active:cursor-grabbing">
-    <!-- Map Background Elements -->
-    <div class="absolute inset-0 pointer-events-none opacity-80">
-      <!-- Pathways -->
-      <div class="absolute top-[20%] left-0 w-full h-12 pathway transform -skew-y-1"></div>
-      <div class="absolute top-0 left-[35%] w-8 h-full pathway transform skew-x-6"></div>
-      <div class="absolute top-[60%] left-0 w-full h-8 pathway transform skew-y-2"></div>
-      <div class="absolute top-0 right-[25%] w-6 h-full pathway"></div>
-
-      <!-- Green Areas -->
-      <div
-        class="absolute top-[40%] left-[45%] w-64 h-64 rounded-full green-area transform -translate-x-1/2 -translate-y-1/2">
-      </div>
-      <div class="absolute bottom-[10%] right-[10%] w-64 h-40 rounded-xl green-area rotate-3">
-        <div class="absolute inset-4 border-2 border-white/5 rounded-lg"></div>
-      </div>
-
-      <!-- Buildings -->
-      <div
-        class="absolute top-[25%] left-[20%] w-32 h-24 building-shape rounded-lg transform rotate-[-5deg] flex items-center justify-center">
-        <span class="text-[10px] text-zinc-600 font-bold tracking-widest uppercase opacity-50">Library</span>
-      </div>
-      <div class="absolute top-[15%] right-[30%] w-40 h-32 building-shape rounded-lg flex items-center justify-center">
-        <span class="text-[10px] text-zinc-600 font-bold tracking-widest uppercase opacity-50">Science</span>
-      </div>
-      <div
-        class="absolute top-[55%] left-[55%] w-48 h-36 building-shape rounded-2xl transform rotate-[10deg] flex items-center justify-center">
-        <span class="text-[10px] text-zinc-600 font-bold tracking-widest uppercase opacity-50">Student Ctr</span>
-      </div>
-      <div class="absolute bottom-[20%] left-[10%] w-24 h-48 building-shape rounded-lg transform rotate-[-2deg]"></div>
-      <div class="absolute bottom-[25%] left-[22%] w-24 h-48 building-shape rounded-lg transform rotate-[-2deg]"></div>
-    </div>
-
-    <!-- Parking Lot Markers -->
-    <!-- P1 - Central Garage (Main) -->
-    <div class="absolute top-[48%] left-[42%] z-30 group/pin">
-      <div class="relative flex flex-col items-center">
-        <!-- Popup -->
-        <div
-          class="absolute bottom-[120%] mb-2 w-72 opacity-100 scale-100 transition-all duration-300 origin-bottom z-50">
-          <div class="parking-popup rounded-xl shadow-2xl p-0 overflow-hidden flex flex-col">
-            <div class="parking-popup-header p-4 flex justify-between items-start">
-              <div>
-                <h3 class="font-bold text-white text-base">Central Garage (P1)</h3>
-                <p class="text-xs text-zinc-400 mt-1">Main Campus • Underground</p>
-              </div>
-              <div class="status-badge status-open">Open</div>
-            </div>
-            <div class="p-4 space-y-4">
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-zinc-400">Capacity</span>
-                <span class="text-white font-mono">45/200</span>
-              </div>
-              <div class="capacity-bar">
-                <div class="capacity-fill-low h-1.5" style="width: 22%"></div>
-              </div>
-              <button
-                class="w-full bg-primary hover:bg-blue-600 text-white text-xs font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-lg">videocam</span>
-                View Live Feed
-              </button>
-            </div>
-          </div>
-        </div>
-        <!-- Marker -->
-        <div class="parking-marker">
-          <span class="material-symbols-outlined text-white text-2xl relative z-10">local_parking</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- P2 - North Science Lot -->
-    <div class="absolute top-[20%] right-[25%] z-20 hover:z-30 group/pin">
-      <div class="relative flex flex-col items-center">
-        <div class="absolute bottom-[130%] mb-2 w-56 tooltip-fade">
-          <div class="parking-popup rounded-lg shadow-xl p-3 flex flex-col gap-2">
-            <div>
-              <h3 class="font-bold text-white text-sm">North Science Lot (P2)</h3>
-              <p class="text-xs text-orange-400 font-medium mt-0.5">Filling Fast (85%)</p>
-            </div>
-            <button
-              class="w-full bg-zinc-800 hover:bg-primary hover:text-white text-zinc-300 text-xs font-medium py-2 rounded transition-colors flex items-center justify-center gap-1">
-              View Feed
-            </button>
-          </div>
-          <div class="popup-arrow bottom-0 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
-        </div>
-        <div class="parking-marker-small"></div>
-      </div>
-    </div>
-
-    <!-- P3 - West Dorms Lot -->
-    <div class="absolute bottom-[28%] left-[18%] z-20 hover:z-30 group/pin">
-      <div class="relative flex flex-col items-center">
-        <div class="absolute bottom-[130%] mb-2 w-56 tooltip-fade">
-          <div class="parking-popup rounded-lg shadow-xl p-3 flex flex-col gap-2">
-            <div>
-              <h3 class="font-bold text-white text-sm">West Dorms Lot (P3)</h3>
-              <p class="text-xs text-emerald-400 font-medium mt-0.5">Available (20%)</p>
-            </div>
-            <button
-              class="w-full bg-zinc-800 hover:bg-primary hover:text-white text-zinc-300 text-xs font-medium py-2 rounded transition-colors flex items-center justify-center gap-1">
-              View Feed
-            </button>
-          </div>
-          <div class="popup-arrow bottom-0 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
-        </div>
-        <div class="parking-marker-small"></div>
-      </div>
-    </div>
-
-    <!-- P4 - Sports Complex -->
-    <div class="absolute bottom-[15%] right-[15%] z-20 hover:z-30 group/pin">
-      <div class="relative flex flex-col items-center">
-        <div class="absolute bottom-[130%] mb-2 w-56 tooltip-fade">
-          <div class="parking-popup rounded-lg shadow-xl p-3 flex flex-col gap-2">
-            <div>
-              <h3 class="font-bold text-white text-sm">Sports Complex (P4)</h3>
-              <p class="text-xs text-red-400 font-medium mt-0.5">Full</p>
-            </div>
-            <button
-              class="w-full bg-zinc-800 hover:bg-primary hover:text-white text-zinc-300 text-xs font-medium py-2 rounded transition-colors flex items-center justify-center gap-1">
-              View Feed
-            </button>
-          </div>
-          <div class="popup-arrow bottom-0 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
-        </div>
-        <div class="parking-marker-small"></div>
-      </div>
-    </div>
   </div>
 
   <!-- Map Legend -->
@@ -193,6 +65,143 @@
 </div>
 
 <script>
-  // Script removed - currentTime element no longer exists in header
+  // Initialize Leaflet Map
+  // Prince of Songkla University - Kho Hong Campus coordinates
+  // Address: 15 Kanchanawanit Rd, Kho Hong, Hat Yai, Songkhla 90110
+  const PSU_LAT = 7.010317;
+  const PSU_LNG = 100.496555;
+
+  let map = L.map('map').setView([PSU_LAT, PSU_LNG], 18);
+
+  // Add OpenStreetMap tiles
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 21,
+    minZoom: 15
+  }).addTo(map);
+
+  // Custom parking marker icon
+  const parkingIcon = L.divIcon({
+    html: `<div class="parking-marker"><span class="material-symbols-outlined text-white text-2xl relative z-10">local_parking</span></div>`,
+    iconSize: [56, 56],
+    iconAnchor: [28, 28],
+    popupAnchor: [0, -28]
+  });
+
+  const smallParkingIcon = L.divIcon({
+    html: `<div class="parking-marker-small"></div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -12]
+  });
+
+  // Parking lots data (precise locations around PSU campus)
+  const parkingLots = [
+    {
+      name: 'Engineering Building Lot (P1)',
+      location: 'Faculty of Engineering • Main Parking',
+      lat: 7.0110,
+      lng: 100.4960,
+      capacity: 45,
+      maxCapacity: 200,
+      status: 'open',
+      status_label: 'Open',
+      capacityPercent: 22
+    },
+    {
+      name: 'Science Building Lot (P2)',
+      lat: 7.0130,
+      lng: 100.4985,
+      capacity: 170,
+      maxCapacity: 200,
+      status: 'filling',
+      status_label: 'Filling Fast (85%)',
+      capacityPercent: 85
+    },
+    {
+      name: 'Dormitory Lot (P3)',
+      lat: 7.0080,
+      lng: 100.4930,
+      capacity: 40,
+      maxCapacity: 200,
+      status: 'available',
+      status_label: 'Available (20%)',
+      capacityPercent: 20
+    },
+    {
+      name: 'Sports Center Lot (P4)',
+      lat: 7.0095,
+      lng: 100.5010,
+      capacity: 200,
+      maxCapacity: 200,
+      status: 'full',
+      status_label: 'Full',
+      capacityPercent: 100
+    }
+  ];
+
+  // Create popup content
+  function createPopupContent(lot) {
+    const statusColors = {
+      'open': '#22c55e',
+      'filling': '#fb923c',
+      'full': '#ef4444'
+    };
+    const statusBgColors = {
+      'open': 'rgba(34, 197, 94, 0.1)',
+      'filling': 'rgba(251, 146, 60, 0.1)',
+      'full': 'rgba(239, 68, 68, 0.1)'
+    };
+
+    return `
+      <div class="parking-popup-content" style="width: 280px;">
+        <div style="background-color: #27272a; padding: 16px; border-bottom: 1px solid rgba(113, 113, 122, 0.3);">
+          <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div>
+              <h3 style="font-weight: bold; color: white; font-size: 16px; margin: 0;">${lot.name}</h3>
+              <p style="font-size: 12px; color: #a1a1aa; margin: 4px 0 0 0;">${lot.location || ''}</p>
+            </div>
+            <span style="background-color: ${statusBgColors[lot.status]}; border: 1px solid ${statusColors[lot.status]}; color: ${statusColors[lot.status]}; padding: 4px 8px; border-radius: 2px; font-size: 10px; font-weight: bold; white-space: nowrap;">${lot.status_label}</span>
+          </div>
+        </div>
+        <div style="padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px; margin-bottom: 12px;">
+            <span style="color: #a1a1aa;">Capacity</span>
+            <span style="color: white; font-family: monospace;">${lot.capacity}/${lot.maxCapacity}</span>
+          </div>
+          <div style="background-color: rgba(113, 113, 122, 0.3); border-radius: 9999px; overflow: hidden; height: 6px; margin-bottom: 16px;">
+            <div style="height: 100%; width: ${lot.capacityPercent}%; background-color: ${lot.capacityPercent >= 85 ? '#ef4444' : lot.capacityPercent >= 50 ? '#fb923c' : '#22c55e'};"></div>
+          </div>
+          <button style="width: 100%; background-color: #3b82f6; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span class="material-symbols-outlined" style="font-size: 18px;">videocam</span>
+            View Live Feed
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  // Add parking lot markers
+  parkingLots.forEach((lot, index) => {
+    const icon = index === 0 ? parkingIcon : smallParkingIcon;
+    const marker = L.marker([lot.lat, lot.lng], { icon: icon }).addTo(map);
+    marker.bindPopup(createPopupContent(lot), { maxWidth: 300 });
+  });
+
+  // Zoom to university function
+  function zoomToUniversity() {
+    map.setView([PSU_LAT, PSU_LNG], 15);
+  }
+
+  // Search functionality (placeholder)
+  document.getElementById('searchInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      const query = e.target.value.toLowerCase();
+      const found = parkingLots.find(lot => lot.name.toLowerCase().includes(query));
+      if (found) {
+        map.setView([found.lat, found.lng], 19);
+      }
+    }
+  });
 </script>
 {% endblock body %}

@@ -1,24 +1,42 @@
 /* Campus Parking Map Styles */
 
-.campus-map-bg {
+#map {
   background-color: #0a0a0a;
-  background-image: 
-    radial-gradient(circle at 50% 50%, rgba(30, 41, 59, 0.3) 0%, transparent 50%);
 }
 
-.building-shape {
-  background-color: #2a2a35;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-  border: 1px solid #3f3f4e;
+/* Leaflet overrides for dark theme */
+.leaflet-container {
+  background-color: #1a1a1a;
+  font-family: inherit;
 }
 
-.green-area {
-  background-color: rgba(34, 197, 94, 0.05);
-  border: 1px dashed rgba(34, 197, 94, 0.1);
+.leaflet-control-attribution {
+  background-color: rgba(31, 31, 35, 0.8);
+  color: #a1a1aa;
+  font-size: 11px;
 }
 
-.pathway {
-  background-color: #27272f;
+.leaflet-popup {
+  margin-bottom: 0 !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0;
+  background-color: transparent;
+}
+
+.leaflet-popup-tip {
+  background-color: #27272a;
+  border: 1px solid rgba(113, 113, 122, 0.3);
+}
+
+.parking-popup-content {
+  background-color: #1f1f23;
+  border: 1px solid rgba(113, 113, 122, 0.5);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .search-box {
@@ -190,26 +208,11 @@
 }
 
 .popup-arrow {
-  position: absolute;
-  width: 0.75rem;
-  height: 0.75rem;
-  background-color: #1f1f23;
-  border-right: 1px solid rgba(113, 113, 122, 0.5);
-  border-bottom: 1px solid rgba(113, 113, 122, 0.5);
-  transform: rotate(45deg);
+  display: none;
 }
 
 .tooltip-fade {
-  opacity: 0;
-  transform: scale(0.95);
-  transition: all 0.2s ease;
-  pointer-events: none;
-}
-
-.group:hover .tooltip-fade {
-  opacity: 1;
-  transform: scale(1);
-  pointer-events: auto;
+  display: none;
 }
 
 /* Dark theme adjustments */
@@ -219,4 +222,28 @@
 
 .dark .parking-popup {
   color: #f1f5f9;
+}
+
+/* Leaflet control styling */
+.leaflet-control {
+  border-radius: 6px;
+}
+
+.leaflet-control-zoom {
+  border: 1px solid rgba(113, 113, 122, 0.3) !important;
+  border-radius: 6px !important;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  background-color: #1f1f23 !important;
+  color: #a1a1aa !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(113, 113, 122, 0.3) !important;
+}
+
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+  background-color: #27272a !important;
+  color: #3b82f6 !important;
 }
