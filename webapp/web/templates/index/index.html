@@ -2,6 +2,9 @@
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<!-- Leaflet CSS and JS for map picker -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 {% endblock head %}
 
 {% block body %}
@@ -86,7 +89,7 @@
             class="input input-bordered input-sm w-full bg-slate-900 border-slate-600 focus:border-emerald-500" />
         </div>
 
-        <div class="flex gap-4 mb-6">
+        <div class="flex gap-4 mb-2">
           <div class="form-control flex-1">
             <label class="label">
               <span class="label-text text-slate-300">Latitude (ละติจูด)</span>
@@ -101,6 +104,17 @@
             <input type="number" id="modal-cam-lng" placeholder="e.g. 100.4965" step="any"
               class="input input-bordered input-sm w-full bg-slate-900 border-slate-600 focus:border-emerald-500" />
           </div>
+        </div>
+
+        <div class="form-control w-full mb-4">
+          <label class="label pt-0 pb-1">
+            <span class="label-text text-slate-300">Pin Location on Map</span>
+            <button type="button" class="btn btn-xs btn-ghost text-emerald-400 hover:bg-slate-700"
+              onclick="resetMapLocation()">Reset Pin</button>
+          </label>
+          <div id="picker-map" style="height: 180px; width: 100%; z-index: 10;"
+            class="rounded-lg border border-slate-600"></div>
+          <span class="label-text-alt text-slate-400 mt-1">Click on the map to set the camera coordinates</span>
         </div>
       </div>
 
@@ -195,11 +209,69 @@
   let currentActiveSlot = null;
   let currentActiveCameraId = null;
 
+  let pickerMap = null;
+  let pickerMarker = null;
+  const PSU_LAT = 7.010317;
+  const PSU_LNG = 100.496555;
+
+  function initPickerMap() {
+    if (!pickerMap) {
+      pickerMap = L.map('picker-map').setView([PSU_LAT, PSU_LNG], 16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 21,
+      }).addTo(pickerMap);
+
+      pickerMap.on('click', function (e) {
+        document.getElementById('modal-cam-lat').value = e.latlng.lat.toFixed(6);
+        document.getElementById('modal-cam-lng').value = e.latlng.lng.toFixed(6);
+
+        if (pickerMarker) {
+          pickerMarker.setLatLng(e.latlng);
+        } else {
+          pickerMarker = L.marker(e.latlng).addTo(pickerMap);
+        }
+      });
+
+      const updateMarkerFromInput = () => {
+        const lat = parseFloat(document.getElementById('modal-cam-lat').value);
+        const lng = parseFloat(document.getElementById('modal-cam-lng').value);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          const latlng = [lat, lng];
+          if (pickerMarker) {
+            pickerMarker.setLatLng(latlng);
+          } else {
+            pickerMarker = L.marker(latlng).addTo(pickerMap);
+          }
+          pickerMap.setView(latlng);
+        }
+      };
+
+      document.getElementById('modal-cam-lat').addEventListener('input', updateMarkerFromInput);
+      document.getElementById('modal-cam-lng').addEventListener('input', updateMarkerFromInput);
+    }
+  }
+
+  function resetMapLocation() {
+    document.getElementById('modal-cam-lat').value = '';
+    document.getElementById('modal-cam-lng').value = '';
+    if (pickerMarker && pickerMap) {
+      pickerMap.removeLayer(pickerMarker);
+      pickerMarker = null;
+    }
+    if (pickerMap) {
+      pickerMap.setView([PSU_LAT, PSU_LNG], 16);
+    }
+  }
+
   function toggleNewCameraInputs() {
     const selector = document.getElementById("modal-cam-select");
     const container = document.getElementById("new-camera-inputs");
     if (selector.value === "") {
       container.style.display = "block";
+      if (pickerMap) {
+        setTimeout(() => pickerMap.invalidateSize(), 150);
+      }
     } else {
       container.style.display = "none";
     }
@@ -218,6 +290,12 @@
     document.getElementById("modal-cam-lat").value = "";
     document.getElementById("modal-cam-lng").value = "";
 
+    if (pickerMarker && pickerMap) {
+      pickerMap.removeLayer(pickerMarker);
+      pickerMarker = null;
+      pickerMap.setView([PSU_LAT, PSU_LNG], 16);
+    }
+
     const removeBtn = document.getElementById("modal-remove-btn-container");
     if (cameraId && cameraId !== "") {
       removeBtn.classList.remove("hidden");
@@ -227,6 +305,12 @@
 
     // Open daisyUI modal
     document.getElementById("camera_modal").showModal();
+
+    // Initialize map if not yet created, and trigger resize
+    initPickerMap();
+    if (pickerMap) {
+      setTimeout(() => pickerMap.invalidateSize(), 150);
+    }
   }
 
   function closeCameraModal() {
