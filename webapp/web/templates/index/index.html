@@ -11,7 +11,28 @@
 <div class="flex-1 w-full h-full relative flex flex-col overflow-hidden min-h-0">
   <!-- Main Content -->
   <main class="flex-1 p-2 bg-background-dark overflow-hidden flex flex-col min-h-0">
-    <div class="grid grid-cols-5 grid-rows-4 gap-2 h-full w-full min-h-0">
+
+    <!-- View Mode Controls -->
+    <div class="flex items-center justify-between mb-2 px-1 shrink-0">
+      <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Live Cameras</h2>
+      <div class="flex items-center gap-1 bg-slate-800/50 p-1 rounded-lg border border-white/5">
+        <button onclick="setGridMode(3)"
+          class="grid-mode-btn px-3 py-1 text-xs font-semibold rounded text-slate-400 hover:text-white transition-all"
+          data-mode="3">3 Cam</button>
+        <button onclick="setGridMode(6)"
+          class="grid-mode-btn px-3 py-1 text-xs font-semibold rounded text-slate-400 hover:text-white transition-all"
+          data-mode="6">6 Cam</button>
+        <button onclick="setGridMode(9)"
+          class="grid-mode-btn px-3 py-1 text-xs font-semibold rounded text-slate-400 hover:text-white transition-all"
+          data-mode="9">9 Cam</button>
+        <button onclick="setGridMode(20)"
+          class="grid-mode-btn px-3 py-1 text-xs font-semibold rounded text-slate-400 hover:text-white transition-all"
+          data-mode="20">20 Cam</button>
+      </div>
+    </div>
+
+    <!-- Camera Grid -->
+    <div id="camera-grid" class="grid gap-2 flex-1 w-full min-h-0 overflow-y-auto content-start pb-2">
       {% for i in range(1, 21) %}
       {% set slot_id = '%02d' % i %}
       {% set cam = assigned_cameras.get(i) %}
@@ -165,6 +186,52 @@
 <script>
   let currentActiveSlot = null;
   let currentActiveCameraId = null;
+
+  // ----------- Grid View Logic -----------
+  function setGridMode(mode) {
+    const grid = document.getElementById('camera-grid');
+    if (!grid) return;
+
+    // Save preference
+    localStorage.setItem('cctv_grid_mode', mode);
+
+    // Update active button styling
+    document.querySelectorAll('.grid-mode-btn').forEach(btn => {
+      if (parseInt(btn.dataset.mode) === mode) {
+        btn.classList.add('bg-white/10', 'text-white', 'shadow-sm');
+        btn.classList.remove('text-slate-400', 'hover:text-white');
+      } else {
+        btn.classList.remove('bg-white/10', 'text-white', 'shadow-sm');
+        btn.classList.add('text-slate-400', 'hover:text-white');
+      }
+    });
+
+    // Reset grid classes
+    grid.className = 'grid gap-2 flex-1 w-full min-h-0 overflow-y-auto content-start pb-2';
+
+    // Calculate and apply grid styling based on mode
+    if (mode === 3) {
+      grid.classList.add('grid-cols-3');
+      grid.style.gridAutoRows = 'calc(100% - 0.5rem)';
+    } else if (mode === 6) {
+      grid.classList.add('grid-cols-3');
+      grid.style.gridAutoRows = 'calc((100% - 1rem) / 2)';
+    } else if (mode === 9) {
+      grid.classList.add('grid-cols-3');
+      grid.style.gridAutoRows = 'calc((100% - 1.5rem) / 3)';
+    } else {
+      // Default / 20 mode (5 columns, 4 rows fitting height)
+      grid.classList.add('grid-cols-5');
+      grid.style.gridAutoRows = 'calc((100% - 2rem) / 4)';
+    }
+  }
+
+  // Load grid preference on startup
+  document.addEventListener('DOMContentLoaded', () => {
+    const savedMode = localStorage.getItem('cctv_grid_mode');
+    setGridMode(savedMode ? parseInt(savedMode) : 20); // Default to 20
+  });
+  // ---------------------------------------
 
   let pickerMap = null;
   let pickerMarker = null;
